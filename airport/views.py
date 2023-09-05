@@ -44,14 +44,25 @@ class AirportViewSet(viewsets.ModelViewSet):
 
 class AirplaneViewSet(viewsets.ModelViewSet):
     queryset = Airplane.objects.all().select_related("airplane_type")
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+
+    @staticmethod
+    def _params_to_ints(qs):
+        """Converts a list of string IDs to a list of integers"""
+        return [int(str_id) for str_id in qs.split(",")]
 
     def get_queryset(self):
         name = self.request.query_params.get("name")
+        airplane_type = self.request.query_params.get("airplane_type")
 
         queryset = self.queryset
 
         if name:
             queryset = queryset.filter(name__icontains=name)
+
+        if airplane_type:
+            airplane_type_ids = self._params_to_ints(airplane_type)
+            queryset = queryset.filter(airplane_type__id__in=airplane_type_ids)
 
         return queryset
 
