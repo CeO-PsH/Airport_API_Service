@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from django.db.models import F, Count
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -42,6 +44,19 @@ class AirportViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="Filter by name",
+                required=False,
+                type=OpenApiTypes.STR
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
+
 class AirplaneViewSet(viewsets.ModelViewSet):
     queryset = Airplane.objects.all().select_related("airplane_type")
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
@@ -65,6 +80,25 @@ class AirplaneViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(airplane_type__id__in=airplane_type_ids)
 
         return queryset
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="name",
+                description="Filter by name",
+                required=False,
+                type=OpenApiTypes.STR
+            ),
+            OpenApiParameter(
+                name="airplane_type",
+                description="Filter by type id of airplane {ex. ?airplane_type=1,2)",
+                required=False,
+                type={"type": "list", "items": {"type": "number"}},
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -129,6 +163,25 @@ class FlightViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(route_id=int(route_id_str))
 
         return queryset
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="departure_time",
+                description="Filter by departure_time",
+                required=False,
+                type=OpenApiTypes.DATE
+            ),
+            OpenApiParameter(
+                name="route",
+                description="Filter by type id of route {ex. ?route=1,2)",
+                required=False,
+                type=OpenApiTypes.INT,
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
 
     def get_serializer_class(self):
         if self.action == "list":
