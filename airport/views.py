@@ -5,6 +5,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
 
+from Aiport_API_Service.permissions import IsAdminOrIfAuthenticatedReadOnly
 from airport.models import AirplaneType, Airplane, Crew, Airport, Route, Flight, Order
 from airport.serializers import AirplaneTypeSerializer, CrewSerializer, \
     AirplaneDetailSerializer, AirplaneSerializer, RouteSerializer, RouteListSerializer, RouteDetailSerializer, \
@@ -14,16 +15,19 @@ from airport.serializers import AirplaneTypeSerializer, CrewSerializer, \
 class AirplaneTypeViewSet(viewsets.ModelViewSet):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class CrewViewSet(viewsets.ModelViewSet):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class AirportViewSet(viewsets.ModelViewSet):
     queryset = Airport.objects.all()
     serializer_class = AirportListSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
         name = self.request.query_params.get("name")
@@ -56,6 +60,7 @@ class AirplaneViewSet(viewsets.ModelViewSet):
 
 class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.select_related("destination", "source")
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -78,7 +83,7 @@ class FlightViewSet(viewsets.ModelViewSet):
             )
         )
     )
-    serializer_class = FlightSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
     def get_queryset(self):
         date = self.request.query_params.get("departure_time")
         route_id_str = self.request.query_params.get("route")
@@ -116,6 +121,7 @@ class OrderViewSet(
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     pagination_class = OrderPagination
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
         queryset = self.queryset.filter(user=self.request.user)
