@@ -10,11 +10,32 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from Aiport_API_Service.permissions import IsAdminOrIfAuthenticatedReadOnly
-from airport.models import AirplaneType, Airplane, Crew, Airport, Route, Flight, Order
-from airport.serializers import AirplaneTypeSerializer, CrewSerializer, \
-    AirplaneDetailSerializer, AirplaneSerializer, RouteSerializer, RouteListSerializer, RouteDetailSerializer, \
-    AirportListSerializer, FlightListSerializer, FlightDetailSerializer, FlightSerializer, OrderSerializer, \
-    OrderListSerializer, AirplaneImageSerializer, AirplaneListSerializer
+from airport.models import (
+    AirplaneType,
+    Airplane,
+    Crew,
+    Airport,
+    Route,
+    Flight,
+    Order
+)
+from airport.serializers import (
+    AirplaneTypeSerializer,
+    CrewSerializer,
+    AirplaneDetailSerializer,
+    AirplaneSerializer,
+    RouteSerializer,
+    RouteListSerializer,
+    RouteDetailSerializer,
+    AirportListSerializer,
+    FlightListSerializer,
+    FlightDetailSerializer,
+    FlightSerializer,
+    OrderSerializer,
+    OrderListSerializer,
+    AirplaneImageSerializer,
+    AirplaneListSerializer,
+)
 
 
 class AirplaneTypeViewSet(viewsets.ModelViewSet):
@@ -50,12 +71,13 @@ class AirportViewSet(viewsets.ModelViewSet):
                 name="name",
                 description="Filter by name",
                 required=False,
-                type=OpenApiTypes.STR
+                type=OpenApiTypes.STR,
             )
         ]
     )
     def list(self, request):
         return super().list(request)
+
 
 class AirplaneViewSet(viewsets.ModelViewSet):
     queryset = Airplane.objects.all().select_related("airplane_type")
@@ -77,7 +99,9 @@ class AirplaneViewSet(viewsets.ModelViewSet):
 
         if airplane_type:
             airplane_type_ids = self._params_to_ints(airplane_type)
-            queryset = queryset.filter(airplane_type__id__in=airplane_type_ids)
+            queryset = queryset.filter(
+                airplane_type__id__in=airplane_type_ids
+            )
 
         return queryset
 
@@ -87,14 +111,14 @@ class AirplaneViewSet(viewsets.ModelViewSet):
                 name="name",
                 description="Filter by name",
                 required=False,
-                type=OpenApiTypes.STR
+                type=OpenApiTypes.STR,
             ),
             OpenApiParameter(
                 name="airplane_type",
-                description="Filter by type id of airplane {ex. ?airplane_type=1,2)",
+                description="Filter by type {ex. ?airplane_type=1,2)",
                 required=False,
                 type={"type": "list", "items": {"type": "number"}},
-            )
+            ),
         ]
     )
     def list(self, request):
@@ -114,11 +138,17 @@ class AirplaneViewSet(viewsets.ModelViewSet):
     @action(methods=["POST"], detail=True, url_path="upload-image")
     def upload_image(self, request, pk=None):
         airplane = self.get_object()
-        serializer = self.get_serializer(airplane, data=request.data)
+        serializer = self.get_serializer(
+            airplane,
+            data=request.data
+        )
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
 
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
@@ -136,6 +166,7 @@ class RouteViewSet(viewsets.ModelViewSet):
 
         return RouteSerializer
 
+
 class FlightViewSet(viewsets.ModelViewSet):
     queryset = (
         Flight.objects.all()
@@ -149,6 +180,7 @@ class FlightViewSet(viewsets.ModelViewSet):
         )
     )
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+
     def get_queryset(self):
         date = self.request.query_params.get("departure_time")
         route_id_str = self.request.query_params.get("route")
@@ -170,14 +202,14 @@ class FlightViewSet(viewsets.ModelViewSet):
                 name="departure_time",
                 description="Filter by departure_time",
                 required=False,
-                type=OpenApiTypes.DATE
+                type=OpenApiTypes.DATE,
             ),
             OpenApiParameter(
                 name="route",
                 description="Filter by type id of route {ex. ?route=1,2)",
                 required=False,
                 type=OpenApiTypes.INT,
-            )
+            ),
         ]
     )
     def list(self, request):
@@ -192,10 +224,12 @@ class FlightViewSet(viewsets.ModelViewSet):
 
         return FlightSerializer
 
+
 class OrderPagination(PageNumberPagination):
     page_size = 5
     page_size_query_param = "page_size"
     max_page_size = 100
+
 
 class OrderViewSet(
     mixins.ListModelMixin,
