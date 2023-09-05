@@ -119,7 +119,6 @@ class OrderViewSet(
     GenericViewSet,
 ):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
     pagination_class = OrderPagination
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
@@ -132,6 +131,7 @@ class OrderViewSet(
                 "tickets__flight__route",
             )
         return queryset
+
     def get_serializer_class(self):
         if self.action == "list":
             return OrderListSerializer
