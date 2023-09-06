@@ -46,8 +46,8 @@ class AuthenticatedAirportApiTests(TestCase):
 
         res = self.client.get(AIRPORT_URL)
 
-        airplane_type = Airport.objects.order_by("id")
-        serializer = AirportListSerializer(airplane_type, many=True)
+        airport = Airport.objects.order_by("id")
+        serializer = AirportListSerializer(airport, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
@@ -80,9 +80,9 @@ class AdminAirportApiTests(TestCase):
         res = self.client.post(AIRPORT_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        airplane_type = Airport.objects.get(id=res.data["id"])
+        airport = Airport.objects.get(id=res.data["id"])
         for key in payload.keys():
-            self.assertEqual(payload[key], getattr(airplane_type, key))
+            self.assertEqual(payload[key], getattr(airport, key))
 
     def test_create_airport_without_country_and_closest_big_cite(self):
         payload = {
@@ -92,9 +92,9 @@ class AdminAirportApiTests(TestCase):
         res = self.client.post(AIRPORT_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        airplane_type = Airport.objects.get(id=res.data["id"])
+        airport = Airport.objects.get(id=res.data["id"])
         for key in payload.keys():
-            self.assertEqual(payload[key], getattr(airplane_type, key))
+            self.assertEqual(payload[key], getattr(airport, key))
 
     def test_filter_airport_by_name(self):
         airport1 = sample_airport(name="Barcelona")

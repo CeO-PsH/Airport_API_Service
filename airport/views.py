@@ -59,9 +59,7 @@ class CrewViewSet(
 
 
 class AirportViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet,
+    viewsets.ModelViewSet
 ):
     queryset = Airport.objects.all()
     serializer_class = AirportListSerializer

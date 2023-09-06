@@ -66,10 +66,10 @@ class Route(models.Model):
     destination = models.ForeignKey(
         "Airport", on_delete=models.CASCADE, related_name="destination_routes"
     )
-    distance = models.IntegerField()
+    distance = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return str(f"{self.source.name} - {self.destination.name}")
+        return f"{self.source.name} - {self.destination.name}"
 
 
 class Flight(models.Model):
@@ -83,10 +83,10 @@ class Flight(models.Model):
     )
     departure_time = models.DateTimeField(auto_now_add=False)
     arrival_time = models.DateTimeField(auto_now_add=False)
-    crew = models.ManyToManyField(Crew, blank=True)
+    crew = models.ManyToManyField(Crew, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.route.source} - {self.route.destination}"
+        return f"{self.route.source} - {self.route.destination}, Airplane: {self.airplane.name}"
 
 
 class Ticket(models.Model):
