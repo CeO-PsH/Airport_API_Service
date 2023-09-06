@@ -26,7 +26,11 @@ class Airplane(models.Model):
     rows = models.IntegerField()
     seats_in_row = models.IntegerField()
     airplane_type = models.ForeignKey(
-        "AirplaneType", on_delete=models.CASCADE, related_name="airplanes"
+        "AirplaneType",
+        on_delete=models.CASCADE,
+        related_name="airplanes",
+        blank=True,
+        null=True
     )
     image = models.ImageField(null=True, upload_to=airplane_image_file_path)
 
@@ -48,8 +52,8 @@ class Crew(models.Model):
 
 class Airport(models.Model):
     name = models.CharField(max_length=255)
-    closest_big_cite = models.CharField(max_length=255)
-    country = models.CharField(max_length=255)
+    closest_big_cite = models.CharField(max_length=255, blank=True)
+    country = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return self.name
