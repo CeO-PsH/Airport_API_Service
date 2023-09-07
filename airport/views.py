@@ -60,9 +60,11 @@ class CrewViewSet(
 
 
 class AirportViewSet(
-    viewsets.ModelViewSet
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
 ):
-    queryset = Airport.objects.all()
+    queryset = Airport.objects.select_related().all()
     serializer_class = AirportListSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
@@ -169,7 +171,12 @@ class AirplaneViewSet(
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
 
-class RouteViewSet(viewsets.ModelViewSet):
+class RouteViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet,
+):
     queryset = Route.objects.select_related("destination", "source")
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
@@ -186,7 +193,7 @@ class RouteViewSet(viewsets.ModelViewSet):
 class FlightViewSet(viewsets.ModelViewSet):
     queryset = (
         Flight.objects.all()
-        .select_related("airplane", "route__destination")
+        .select_related("airplane", "route__source", "route__destination")
         .prefetch_related("crew", "tickets")
         .annotate(
             tickets_available=(

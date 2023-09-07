@@ -117,7 +117,8 @@ class FlightListSerializer(FlightSerializer):
         read_only=True
     )
     airplane_capacity = serializers.IntegerField(
-        source="airplane.capacity", read_only=True
+        source="airplane.capacity",
+        read_only=True
     )
     route = serializers.StringRelatedField(many=False, read_only=True)
 
