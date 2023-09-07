@@ -52,6 +52,7 @@ class AirplaneSerializer(serializers.ModelSerializer):
             "name",
             "rows",
             "seats_in_row",
+            "airplane_type"
         )
 
 
@@ -74,7 +75,8 @@ class AirplaneDetailSerializer(AirplaneSerializer):
             "rows",
             "seats_in_row",
             "airplane_type",
-            "capacity"
+            "capacity",
+            "image"
         )
 
 
@@ -165,6 +167,7 @@ class FlightDetailSerializer(FlightSerializer):
     airplane_type = serializers.CharField(
         source="airplane.airplane_type.name", read_only=True
     )
+
     crew = CrewSerializer(many=True, read_only=True)
     distance = serializers.IntegerField(
         source="route.distance",

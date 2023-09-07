@@ -90,7 +90,12 @@ class AirportViewSet(
         return super().list(request)
 
 
-class AirplaneViewSet(viewsets.ModelViewSet):
+class AirplaneViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet,
+):
     queryset = Airplane.objects.all().select_related("airplane_type")
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
@@ -181,7 +186,7 @@ class RouteViewSet(viewsets.ModelViewSet):
 class FlightViewSet(viewsets.ModelViewSet):
     queryset = (
         Flight.objects.all()
-        .select_related("route__source", "airplane", "route__destination")
+        .select_related("airplane", "route__destination")
         .prefetch_related("crew", "tickets")
         .annotate(
             tickets_available=(
