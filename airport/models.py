@@ -86,7 +86,8 @@ class Flight(models.Model):
     crew = models.ManyToManyField(Crew, blank=True)
 
     def __str__(self):
-        return f"{self.route.source} - {self.route.destination}, Airplane: {self.airplane.name}"
+        return (f"{self.route.source} - {self.route.destination},"
+                f" Airplane: {self.airplane.name}")
 
 
 class Ticket(models.Model):

@@ -13,6 +13,7 @@ from datetime import timedelta
 from pathlib import Path
 import os
 
+from django.urls import include
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,8 +30,6 @@ SECRET_KEY = os.environ["DJANGO_PROJECT_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -139,9 +138,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+TEST = "tests"
+
 STATIC_URL = "static/"
 
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = "/vol/web/media"
 MEDIA_URL = "/media/"
 
 # Default primary key field type
@@ -162,7 +163,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": 'Airport Service API',
+    "TITLE": "Airport Service API",
     "DESCRIPTION":
         "API for aeroport app, with serialization of different information",
     "VERSION": "1.0.0",
