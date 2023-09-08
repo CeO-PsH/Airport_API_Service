@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Type, Any
 
-from django.db.models import F, Count
+from django.db.models import F, Count, QuerySet
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
@@ -9,6 +10,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
 
 from airport.permissions import IsAdminOrIfAuthenticatedReadOnly
 from airport.models import (
@@ -59,6 +61,12 @@ class CrewViewSet(
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
+def search_in_file_by_name(queryset: QuerySet, name: str) -> QuerySet:
+    if name:
+        return queryset.filter(name__icontains=name)
+    return queryset
+
+
 class AirportViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -68,13 +76,9 @@ class AirportViewSet(
     serializer_class = AirportListSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Airport]:
         name = self.request.query_params.get("name")
-
-        queryset = self.queryset
-
-        if name:
-            queryset = queryset.filter(name__icontains=name)
+        queryset = search_in_file_by_name(self.queryset, name)
 
         return queryset
 
@@ -88,7 +92,7 @@ class AirportViewSet(
             )
         ]
     )
-    def list(self, request):
+    def list(self, request) -> None:
         return super().list(request)
 
 
@@ -102,18 +106,15 @@ class AirplaneViewSet(
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     @staticmethod
-    def _params_to_ints(qs):
+    def _params_to_ints(qs: str) -> list:
         """Converts a list of string IDs to a list of integers"""
         return [int(str_id) for str_id in qs.split(",")]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Airplane]:
         name = self.request.query_params.get("name")
         airplane_type = self.request.query_params.get("airplane_type")
 
-        queryset = self.queryset
-
-        if name:
-            queryset = queryset.filter(name__icontains=name)
+        queryset = search_in_file_by_name(self.queryset, name)
 
         if airplane_type:
             airplane_type_ids = self._params_to_ints(airplane_type)
@@ -139,22 +140,28 @@ class AirplaneViewSet(
             ),
         ]
     )
-    def list(self, request):
+    def list(self, request: Any) -> None:
         return super().list(request)
 
-    def get_serializer_class(self):
+    def get_serializer_class(
+            self,
+    ) -> Type[
+        AirplaneListSerializer
+        | AirplaneDetailSerializer
+        | AirplaneImageSerializer
+        | AirplaneSerializer
+    ]:
         if self.action == "list":
             return AirplaneListSerializer
         if self.action == "retrieve":
             return AirplaneDetailSerializer
-
         if self.action == "upload_image":
             return AirplaneImageSerializer
 
         return AirplaneSerializer
 
     @action(methods=["POST"], detail=True, url_path="upload-image")
-    def upload_image(self, request, pk=None):
+    def upload_image(self, request: Any, pk=None) -> Response:
         airplane = self.get_object()
         serializer = self.get_serializer(
             airplane,
@@ -180,7 +187,9 @@ class RouteViewSet(
     queryset = Route.objects.select_related("destination", "source")
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
-    def get_serializer_class(self):
+    def get_serializer_class(
+            self,
+    ) -> Type[RouteListSerializer | RouteDetailSerializer | RouteSerializer]:
         if self.action == "list":
             return RouteListSerializer
 
@@ -204,7 +213,7 @@ class FlightViewSet(viewsets.ModelViewSet):
     )
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         date = self.request.query_params.get("departure_time")
         route_id_str = self.request.query_params.get("route")
 
@@ -235,10 +244,16 @@ class FlightViewSet(viewsets.ModelViewSet):
             ),
         ]
     )
-    def list(self, request):
+    def list(self, request: Any) -> None:
         return super().list(request)
 
-    def get_serializer_class(self):
+    def get_serializer_class(
+            self,
+    ) -> Type[
+        FlightListSerializer
+        | FlightDetailSerializer
+        | FlightSerializer
+    ]:
         if self.action == "list":
             return FlightListSerializer
 
@@ -263,7 +278,7 @@ class OrderViewSet(
     pagination_class = OrderPagination
     permission_classes = (IsAuthenticated,)
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         queryset = self.queryset.filter(user=self.request.user)
 
         if self.action == "list":
@@ -273,10 +288,12 @@ class OrderViewSet(
             )
         return queryset
 
-    def get_serializer_class(self):
+    def get_serializer_class(
+            self,
+    ) -> Type[OrderListSerializer | OrderSerializer]:
         if self.action == "list":
             return OrderListSerializer
         return OrderSerializer
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: Any) -> None:
         serializer.save(user=self.request.user)

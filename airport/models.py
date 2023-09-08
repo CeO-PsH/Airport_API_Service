@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from django.db import models
 from rest_framework.exceptions import ValidationError
@@ -10,11 +11,11 @@ from django.utils.text import slugify
 class AirplaneType(models.Model):
     name = models.CharField(max_length=255)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
-def airplane_image_file_path(instance, filename):
+def airplane_image_file_path(instance: Any, filename: str) -> str:
     _, ext = os.path.splitext(filename)
 
     filename = f"{slugify(instance.name)}-{uuid.uuid4()}.{ext}"
@@ -38,7 +39,7 @@ class Airplane(models.Model):
     def capacity(self) -> int:
         return self.rows * self.seats_in_row
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -46,7 +47,7 @@ class Crew(models.Model):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
 
@@ -55,7 +56,7 @@ class Airport(models.Model):
     closest_big_cite = models.CharField(max_length=255, blank=True)
     country = models.CharField(max_length=255, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -68,7 +69,7 @@ class Route(models.Model):
     )
     distance = models.IntegerField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.source.name} - {self.destination.name}"
 
 
@@ -85,7 +86,7 @@ class Flight(models.Model):
     arrival_time = models.DateTimeField(auto_now_add=False)
     crew = models.ManyToManyField(Crew, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (f"{self.route.source} - {self.route.destination},"
                 f" Airplane: {self.airplane.name}")
 
@@ -103,11 +104,11 @@ class Ticket(models.Model):
         default=None
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Number: {self.flight}, row: {self.row}, seat: {self.seat}"
 
     @staticmethod
-    def validate_ticket(row, seat, airplane, error_to_raise):
+    def validate_ticket(row, seat, airplane, error_to_raise) -> None:
         for ticket_attr_value, ticket_attr_name, airplane_attr_name in [
             (row, "row", "rows"),
             (seat, "seat", "seats_in_row"),
@@ -123,7 +124,7 @@ class Ticket(models.Model):
                     }
                 )
 
-    def clean(self):
+    def clean(self) -> None:
         Ticket.validate_ticket(
             self.row,
             self.seat,
@@ -137,7 +138,7 @@ class Ticket(models.Model):
         force_update=False,
         using=None,
         update_fields=None,
-    ):
+    ) -> None:
         self.full_clean()
         return super(Ticket, self).save(
             force_insert, force_update, using, update_fields
@@ -155,7 +156,7 @@ class Order(models.Model):
         on_delete=models.CASCADE
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.created_at)
 
     class Meta:
