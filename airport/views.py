@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Union, Type
+from typing import Type, Any
 
 from django.db.models import F, Count, QuerySet
 from drf_spectacular.types import OpenApiTypes
@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from airport import serializers
+
 from airport.permissions import IsAdminOrIfAuthenticatedReadOnly
 from airport.models import (
     AirplaneType,
@@ -61,6 +61,12 @@ class CrewViewSet(
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
+def search_in_file_by_name(queryset: QuerySet, name: str) -> QuerySet:
+    if name:
+        return queryset.filter(name__icontains=name)
+    return queryset
+
+
 class AirportViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -72,11 +78,7 @@ class AirportViewSet(
 
     def get_queryset(self) -> QuerySet[Airport]:
         name = self.request.query_params.get("name")
-
-        queryset = self.queryset
-
-        if name:
-            queryset = queryset.filter(name__icontains=name)
+        queryset = search_in_file_by_name(self.queryset, name)
 
         return queryset
 
@@ -104,7 +106,7 @@ class AirplaneViewSet(
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     @staticmethod
-    def _params_to_ints(qs) -> list:
+    def _params_to_ints(qs: str) -> list:
         """Converts a list of string IDs to a list of integers"""
         return [int(str_id) for str_id in qs.split(",")]
 
@@ -112,10 +114,7 @@ class AirplaneViewSet(
         name = self.request.query_params.get("name")
         airplane_type = self.request.query_params.get("airplane_type")
 
-        queryset = self.queryset
-
-        if name:
-            queryset = queryset.filter(name__icontains=name)
+        queryset = search_in_file_by_name(self.queryset, name)
 
         if airplane_type:
             airplane_type_ids = self._params_to_ints(airplane_type)
@@ -141,29 +140,28 @@ class AirplaneViewSet(
             ),
         ]
     )
-    def list(self, request) -> None:
+    def list(self, request: Any) -> None:
         return super().list(request)
 
     def get_serializer_class(
             self,
     ) -> Type[
-        AirplaneListSerializer |
-        AirplaneDetailSerializer |
-        AirplaneImageSerializer |
-        AirplaneSerializer
-        ]:
+        AirplaneListSerializer
+        | AirplaneDetailSerializer
+        | AirplaneImageSerializer
+        | AirplaneSerializer
+    ]:
         if self.action == "list":
             return AirplaneListSerializer
         if self.action == "retrieve":
             return AirplaneDetailSerializer
-
         if self.action == "upload_image":
             return AirplaneImageSerializer
 
         return AirplaneSerializer
 
     @action(methods=["POST"], detail=True, url_path="upload-image")
-    def upload_image(self, request, pk=None) -> Response:
+    def upload_image(self, request: Any, pk=None) -> Response:
         airplane = self.get_object()
         serializer = self.get_serializer(
             airplane,
@@ -246,12 +244,16 @@ class FlightViewSet(viewsets.ModelViewSet):
             ),
         ]
     )
-    def list(self, request) -> None:
+    def list(self, request: Any) -> None:
         return super().list(request)
 
     def get_serializer_class(
             self,
-    ) -> Type[FlightListSerializer | FlightDetailSerializer | FlightSerializer]:
+    ) -> Type[
+        FlightListSerializer
+        | FlightDetailSerializer
+        | FlightSerializer
+    ]:
         if self.action == "list":
             return FlightListSerializer
 
@@ -286,10 +288,12 @@ class OrderViewSet(
             )
         return queryset
 
-    def get_serializer_class(self) -> Type[OrderListSerializer | OrderSerializer]:
+    def get_serializer_class(
+            self,
+    ) -> Type[OrderListSerializer | OrderSerializer]:
         if self.action == "list":
             return OrderListSerializer
         return OrderSerializer
 
-    def perform_create(self, serializer) -> None:
+    def perform_create(self, serializer: Any) -> None:
         serializer.save(user=self.request.user)

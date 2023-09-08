@@ -223,7 +223,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "created_at",
         )
 
-    def create(self, validated_data) -> Order:
+    def create(self, validated_data: Any) -> Order:
         with transaction.atomic():
             tickets_data = validated_data.pop("tickets")
             order = Order.objects.create(**validated_data)

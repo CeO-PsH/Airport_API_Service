@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from django.db import models
 from rest_framework.exceptions import ValidationError
@@ -14,7 +15,7 @@ class AirplaneType(models.Model):
         return self.name
 
 
-def airplane_image_file_path(instance, filename) -> str:
+def airplane_image_file_path(instance: Any, filename: str) -> str:
     _, ext = os.path.splitext(filename)
 
     filename = f"{slugify(instance.name)}-{uuid.uuid4()}.{ext}"
